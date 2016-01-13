@@ -1,0 +1,62 @@
+{
+  "name": "haproxy-storm",
+  "description": "haproxy-storm plugin module manages the haproxy Loadbalancer configuration & instances",
+  "version": "1.0.0",
+  "author": {
+    "name": "Clearpath Plugin Development Team"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stormstack/haproxy-storm.git"
+  },
+  "dependencies": {
+    "needle": "0.10.1",
+    "jsonschema": "1.0.2",
+    "bluebird": "2.9.34",
+    "async": "0.9.0",
+    "fmerge": "1.1.0",
+    "mkdirp": "0.5.0",
+    "stormdata": "1.2.2",
+    "stormregistry": "1.2.1",
+    "stormservice": "1.0.5"
+  },
+  "engines": {
+    "node": ">=0.6.x"
+  },
+  "main": "./usr/sbin/haproxy",
+  "stormflash": {
+    "packages": [
+      "apt-get://pcre",
+      "apt-get://openssl",
+      "apt-get://zlib"
+    ],
+    "services": [
+      "haproxy*"
+    ],
+    "plugin": "lib/plugin"
+  },
+  "config": {
+    "logfile": "/var/log/haproxy-storm.log",
+    "storm": {
+      "plugins": [
+        "lib/plugin"
+      ]
+    }
+  },
+  "devDependencies": {
+    "coffee-script": ">=1.7"
+  },
+  "optionalDependencies": {},
+  "keywords": [
+    "openssl",
+    "lua",
+    "pcre",
+    "zlib",
+  ],
+  "scripts": {        
+    "prepublish": "mkdir -p lib; coffee -o lib -c src"
+  }, 
+  "contributors": [
+      "Ravi Chunduru/Sivaprasath Busa/Hash Yuan/chandrashekhar/SureshKumar"
+  ]
+}
