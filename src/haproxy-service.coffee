@@ -3,8 +3,6 @@ merge = require('fmerge')
 fs = require 'fs'
 
 
-Schema = require('./schema')
-
 class HAProxyService extends StormService
    
     invocation:
@@ -21,8 +19,6 @@ class HAProxyService extends StormService
         if data.instance?
             @instance = data.instance
             delete data.instance
-
-        @schema = Schema
 
         opts ?= {}
         opts.configPath ?= "/var/stormflash/plugins/HAProxy"
@@ -49,16 +45,16 @@ class HAProxyService extends StormService
                                     haproxyconfig += ' ' + keyy + ' ' + value + "\n"
                                 when "object"
                                     haproxyconfig += "\n" #not supported
-                    when "frontends"
-                        for frontent in frontends
+                    when "frontend"
+                        for frontents in frontend
                             for keyy,value of val
                                 switch (typeof value)
                                     when "string","number"
-                                        haproxyconfig += 'frontend' + ' ' + value +"\n" if keyy is name
+                                        haproxyconfig += 'frontends' + ' ' + value +"\n" if keyy is name
                                         haproxyconfig += ' ' + keyy + ' ' + value + "\n" unless keyy is name
                                     when "object"
                                         haproxyconfig += "\n" #not supported                        
-                    when "backends"
+                    when "backend"
                         haproxyconfig += ""                        
                     when "defaults"
                         haproxyconfig += "\n"

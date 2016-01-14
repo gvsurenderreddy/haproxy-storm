@@ -1,7 +1,7 @@
 StormRegistry = require 'stormregistry'
 StormData = require 'stormdata'
 
-HAProxyService = require './HAProxy-service'
+HAProxyService = require './haproxy-service'
 
 class HAProxyRegistry extends StormRegistry
     constructor: (filename) ->

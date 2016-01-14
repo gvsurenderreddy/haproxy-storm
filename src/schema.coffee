@@ -4,7 +4,7 @@ schema_haproxy =
     required: true
     additionalProperties: false
     properties:
-        global:
+        "global":
             name: "global"
             type: "object"
             required: true            
@@ -31,7 +31,7 @@ schema_haproxy =
                     "uid": {type:"string", required:false}
                     "ulimit-n": {type:"string", required:false}
                     "user": {type:"string", required:false}
-                    "stats": items: {type:"string", required:false}
+                    "stats": items: {type:"object", required:false}
                     "ssl-default-bind-ciphers": {type:"string", required:false}
                     "ssl-default-bind-options": {type:"string", required:false}
                     "ssl-default-server-ciphers": {type:"string", required:false}
@@ -97,7 +97,7 @@ schema_haproxy =
                     "tune.zlib.windowsize": {type:"string", required:false}
                     "debug": {type:"string", required:false}
                     "quiet": {type:"string", required:false}
-        defaults:
+        "defaults":
             name: "defaults"
             type: "object"
             required: false            
@@ -227,7 +227,7 @@ schema_haproxy =
                     "unique-id-header": {type:"string", required:false}
 
 
-        listen:
+        "listen":
             type: "array"
             items:
                 name: "listen"
@@ -235,7 +235,7 @@ schema_haproxy =
                 required: false            
                 properties:
                     "name": {type:"string", required:false}                    
-                    "bind": {type:"string", required:false}
+                    "bind": items: {type:"object", required:false}
                     "balance": {type:"string", required:false}
                     "acl": {type:"string", required:false}
                     "backlog": {type:"string", required:false}
@@ -247,7 +247,7 @@ schema_haproxy =
                     "clitimeout": {type:"string", required:false}
                     "compression": {type:"string", required:false}
                     "contimeout": {type:"string", required:false}
-                    "cookie": {type:"string", required:false}
+                    "cookie": items: {type:"string", required:false}
                     "declare capture": {type:"string", required:false}
                     "default-server": {type:"string", required:false}
                     "default_backend": {type:"string", required:false}
@@ -365,7 +365,7 @@ schema_haproxy =
                     "rspideny": {type:"string", required:false}
                     "rspirep": {type:"string", required:false}
                     "rsprep": {type:"string", required:false}
-                    "server": {type:"string", required:false}
+                    "server": items: {type:"object", required:false}
                     "server-state-file-name": {type:"string", required:false}
                     "source": {type:"string", required:false}
                     "srvtimeout": {type:"string", required:false}
@@ -412,10 +412,10 @@ schema_haproxy =
                     "transparent": {type:"string", required:false}
                     "unique-id-format": {type:"string", required:false}
                     "unique-id-header": {type:"string", required:false}
-                    "use_backend": {type:"string", required:false}
+                    "use_backend": items: {type:"object", required:false}
                     "use-server": {type:"string", required:false}
 
-        frontends:
+        "frontend":
             type: "array"
             items:
                 name: "frontend"
@@ -425,7 +425,7 @@ schema_haproxy =
                     "name": {type:"string", required:false}                    
                     "acl": {type:"string", required:false}
                     "backlog": {type:"string", required:false}
-                    "bind": {type:"string", required:false}
+                    "bind": items: {type:"object", required:false}
                     "bind-process": {type:"string", required:false}
                     "block": {type:"string", required:false}
                     "capture cookie": {type:"string", required:false}
@@ -452,7 +452,7 @@ schema_haproxy =
                     "http-response": {type:"string", required:false}
                     "id": {type:"string", required:false}
                     "ignore-persist": {type:"string", required:false}
-                    "log": {type:"string", required:false}
+                    "log": items: {type:"string", required:false}
                     "log-format": {type:"string", required:false}
                     "log-format-sd": {type:"string", required:false}
                     "log-tag": {type:"string", required:false}
@@ -537,10 +537,10 @@ schema_haproxy =
                     "timeout tarpit": {type:"string", required:false}
                     "unique-id-format": {type:"string", required:false}
                     "unique-id-header": {type:"string", required:false}
-                    "use_backend": {type:"string", required:false}
+                    "use_backend": items: {type:"object", required:false}
 
 
-        backends:
+        "backend":
             type: "array"
             items:
                 name: "backend"
@@ -554,7 +554,7 @@ schema_haproxy =
                     "block": {type:"string", required:false}
                     "compression": {type:"string", required:false}
                     "contimeout": {type:"string", required:false}
-                    "cookie": {type:"string", required:false}
+                    "cookie": items: {type:"string", required:false}
                     "default-server": {type:"string", required:false}
                     "description": {type:"string", required:false}
                     "disabled": {type:"string", required:false}
@@ -652,7 +652,7 @@ schema_haproxy =
                     "rspideny": {type:"string", required:false}
                     "rspirep": {type:"string", required:false}
                     "rsprep": {type:"string", required:false}
-                    "server": {type:"string", required:false}
+                    "server": items: {type:"object", required:false}
                     "server-state-file-name": {type:"string", required:false}
                     "source": {type:"string", required:false}
                     "srvtimeout": {type:"string", required:false}
