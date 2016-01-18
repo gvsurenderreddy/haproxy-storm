@@ -138,6 +138,7 @@ schema_haproxy =
                     "mode": {type:"string", required:false}
                     "monitor-net": {type:"string", required:false}
                     "monitor-uri": {type:"string", required:false}
+                    "option": items: {type:"string", required:false}
                     "option abortonclose": {type:"string", required:false}
                     "option accept-invalid-http-request": {type:"string", required:false}
                     "option accept-invalid-http-response": {type:"string", required:false}
@@ -287,6 +288,7 @@ schema_haproxy =
                     "monitor fail": {type:"string", required:false}
                     "monitor-net": {type:"string", required:false}
                     "monitor-uri": {type:"string", required:false}
+                    "option": items: {type:"string", required:false}
                     "option abortonclose": {type:"string", required:false}
                     "option accept-invalid-http-request": {type:"string", required:false}
                     "option accept-invalid-http-response": {type:"string", required:false}
@@ -461,6 +463,7 @@ schema_haproxy =
                     "monitor fail": {type:"string", required:false}
                     "monitor-net": {type:"string", required:false}
                     "monitor-uri": {type:"string", required:false}
+                    "option": items: {type:"string", required:false}
                     "option accept-invalid-http-request": {type:"string", required:false}
                     "option clitcpka": {type:"string", required:false}
                     "option contstats": {type:"string", required:false}
@@ -586,6 +589,7 @@ schema_haproxy =
                     "log-tag": {type:"string", required:false}
                     "max-keep-alive-queue": {type:"string", required:false}
                     "mode": {type:"string", required:false}
+                    "option": items: {type:"string", required:false}
                     "option abortonclose": {type:"string", required:false}
                     "option accept-invalid-http-response": {type:"string", required:false}
                     "option allbackups": {type:"string", required:false}

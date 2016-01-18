@@ -40,25 +40,34 @@ class HAProxyService extends StormService
                     when "global"
                         haproxyconfig += 'global'+ "\n"
                         for keyy,value of val
-                            switch (typeof value)
-                                when "string","number"
-                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n'
+#                            switch (typeof value)
+#                                when "string","number"
+#                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n'
 #                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n' unless keyy is "name"
 #                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n' unless keyy is "name"
 #                                when "object"
 #                                    haproxyconfig += "\n" #not supported
                             if value instanceof Array
-                                if keyy is "log"
-                                    for jval in value
+                                #if keyy is "log"
+                                for jval in value
+                                  switch (typeof jval)
+                                    when "string", "number"
                                         haproxyconfig += '    ' + keyy + ' ' + jval + '\n'
+                                    when "object"
+                                      haproxyconfig += '    ' + keyy
+                                      for ikey,ival of jval
+                                          haproxyconfig += ' ' + ikey + ' ' + ival
+                                      haproxyconfig += '\n'
+                                ###
                                 if keyy is "stats"
                                     haproxyconfig += '    ' + keyy
                                     for val in value
                                         for ikey,ival of val
                                            haproxyconfig += ' ' + ikey + ' ' + ival
                                         haproxyconfig += '\n'
-#                            else
-#                                haproxyconfig += '    ' + keyy + ' ' + value + '\n'
+                                ###
+                            else
+                                haproxyconfig += '    ' + keyy + ' ' + value + '\n'
                         haproxyconfig += '\n\n'
                     when "frontend"
                         for frontend in val
@@ -70,6 +79,9 @@ class HAProxyService extends StormService
                                     when "object"
                                         haproxyconfig += "\n" #not supported
                                 if value instanceof Array
+                                  if keyy is "tcp-request connection"
+                                    for tcpconnval in value
+                                        haproxyconfig += '    ' + keyy + ' ' + tcpconnval + '\n'
                                   if keyy is "bind"
                                     haproxyconfig += "    " + keyy 
                                     for ival in value
