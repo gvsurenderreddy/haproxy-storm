@@ -99,7 +99,7 @@ class HAProxyService extends StormService
                                             for kval in jval
                                                 haproxyconfig += "    " + keyy + " " + jkey + " " +  kval + "\n"
 #                                else
-#                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n'
+#                                    haproxyconfig += '    ' + keyy + ' ' + value + '\n' unless keyy is "name"
                         haproxyconfig += '\n\n'
                     when "backend"
                         for backend in val
@@ -168,6 +168,48 @@ class HAProxyService extends StormService
                                                 when "options"
                                                     haproxyconfig += " " + jval + "\n"
                         haproxyconfig += "\n\n"
+                    when "peers","mailers"
+                        for peers in val
+                            for keyy,value of peers
+                                switch (typeof value)
+                                    when "string","number"
+                                        haproxyconfig += key + ' ' + value + '\n' if keyy is "name"
+                                        haproxyconfig += ' ' + keyy + ' ' + value + '\n' unless keyy is "name"
+                                    when "object"
+                                        haproxyconfig += "\n" #not supported
+                                if value instanceof Array
+                                  if keyy is "peer" or "mailer"
+                                    for ival in value
+                                        haproxyconfig += "    " + keyy
+                                        for jkey, jval of ival
+                                            switch (jkey)
+                                                when "servername"
+                                                    haproxyconfig += " " + jval
+                                                when "serverIP"
+                                                    haproxyconfig += " " + jval
+                                                when "port"
+                                                    haproxyconfig += ":" + jval
+                                                else
+                                                    haproxyconfig += " " + jkey + " " + jval
+                                        haproxyconfig += "\n"
+                                    haproxyconfig += "\n"
+                    when "userlist"
+                        for userlist in val
+                            for keyy,value of userlist
+                                switch (typeof value)
+                                    when "string","number"
+                                        haproxyconfig += 'userlist' + ' ' + value + '\n' if keyy is "name"
+                                        haproxyconfig += ' ' + keyy + ' ' + value + '\n' unless keyy is "name"
+                                    when "object"
+                                        haproxyconfig += "\n" #not supported
+                                if value instanceof Array
+                                  if keyy is "user" or "group"
+                                    for ival in value
+                                            haproxyconfig += "    " + keyy
+                                            for kval in ival
+                                                haproxyconfig += " " + kval
+                                            haproxyconfig += "\n"
+                                    haproxyconfig += "\n"
                     when "listen"
                         for listen in val
                             for keyy,value of listen
