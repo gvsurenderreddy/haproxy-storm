@@ -1,13 +1,13 @@
 schema_haproxy =
     name: "haproxy"
     type: "object"
-    required: true
-    additionalProperties: false
+    additionalProperties: true
     properties:
+        id: {"type":"string", "required":false}
         "global":
             name: "global"
             type: "object"
-            required: true            
+            additionalProperties: true
             properties:
                     "chroot": {type:"string", required:false}
                     "crt-base": {type:"string", required:false}
@@ -100,7 +100,7 @@ schema_haproxy =
         "defaults":
             name: "defaults"
             type: "object"
-            required: false            
+            additionalProperties: true
             properties:
                     "balance": {type:"string", required:false}
                     "backlog": {type:"string", required:false}
@@ -233,7 +233,7 @@ schema_haproxy =
             items:
                 name: "listen"
                 type: "object"
-                required: false            
+                additionalProperties: true
                 properties:
                     "name": {type:"string", required:false}                    
                     "bind": items: {type:"object", required:false}
@@ -422,7 +422,7 @@ schema_haproxy =
             items:
                 name: "frontend"
                 type: "object"
-                required: false                        
+                additionalProperties: true
                 properties:
                     "name": {type:"string", required:false}                    
                     "acl": {type:"string", required:false}
@@ -548,7 +548,7 @@ schema_haproxy =
             items:
                 name: "backend"
                 type: "object"
-                required: false                        
+                additionalProperties: true
                 properties:
                     "name": {type:"string", required:false}     
                     "balance": {type:"string", required:false}

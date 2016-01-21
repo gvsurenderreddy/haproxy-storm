@@ -9,7 +9,7 @@ schema_haproxy = require('./schema').schema_haproxy
         throw  new Error "this plugin requires to be running in the context of a valid StormAgent!"
 
     plugindir = @settings.plugindir
-    plugindir ?= "/var/stormflash/plugins/HAProxy"
+    plugindir ?= "/var/stormflash/plugins/haproxy"
 
     fs = require 'fs'
     fs.mkdirSync(plugindir) unless fs.existsSync(plugindir)
@@ -24,7 +24,7 @@ schema_haproxy = require('./schema').schema_haproxy
                 if err?
                     return agent.log "restore: HAProxy #{service.id} failed to generate configs!"
 
-    @post '/HAProxy': ->
+    @post '/haproxy': ->
         schema = validate @body, schema_haproxy 
         agent.log 'haproxy schema validate result: ',  JSON.stringify(schema)
         unless schema.valid
@@ -36,7 +36,7 @@ schema_haproxy = require('./schema').schema_haproxy
 
         service.generate (err, results) =>
             return @next err if err?
-            agent.log "POST /HAProxy generation results " +  JSON.stringify results
+            agent.log "POST /haproxy generation results " +  JSON.stringify results
             registry.add service
             agent.invoke service, (err, instance) =>
                 if err?
@@ -45,7 +45,7 @@ schema_haproxy = require('./schema').schema_haproxy
                 else
                     @send {id: service.id, running: true}
 
-    @put '/HAProxy/:id': ->
+    @put '/haproxy/:id': ->
         schema = validate @body, schema_haproxy 
         agent.log 'haproxy schema validate result: ',  JSON.stringify(schema)
         unless schema.valid
@@ -57,17 +57,17 @@ schema_haproxy = require('./schema').schema_haproxy
             service.update @body, (result) =>
                 @send result
 
-    @get '/HAProxy': ->
+    @get '/haproxy': ->
          @send registry.list()
 
-    @get '/HAProxy/:id': ->
+    @get '/haproxy/:id': ->
         service = registry.get @params.id
         unless service?
             @send 404
         else
             @send service
 
-    @del '/HAProxy/:id': ->
+    @del '/haproxy/:id': ->
         service = registry.get @params.id
         return @send 404 unless service?
 
