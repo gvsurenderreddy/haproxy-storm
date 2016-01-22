@@ -37,45 +37,64 @@ class HAProxyService extends StormService
             haproxyconfig = ""
             for key, val of @data
                 switch (key)
-                    when "global"
-                        haproxyconfig += 'global'+ "\n"
+                    when "global","defaults"
+                        haproxyconfig += key + "\n"
                         for keyy,value of val
                             switch (typeof value)
                                 when "string","number"
                                     haproxyconfig += '    ' + keyy + ' ' + value + '\n'
                             if value instanceof Array
-                                #if keyy is "log"
-                                for jval in value
-                                  switch (typeof jval)
-                                    when "string", "number"
-                                        haproxyconfig += '    ' + keyy + ' ' + jval + '\n'
-                                    when "object"
-                                      haproxyconfig += '    ' + keyy
-                                      for ikey,ival of jval
-                                          haproxyconfig += ' ' + ikey + ' ' + ival
-                                      haproxyconfig += '\n'
-                                    else
-                                      haproxyconfig += '\n'
-#                            else
-#                                haproxyconfig += '    ' + keyy + ' ' + value + '\n'
-                        haproxyconfig += '\n\n'
+                                myarray = "yes"
+                                for ival in value
+                                  if ival instanceof Array
+                                          haproxyconfig += '    ' + keyy
+                                          for jval in ival
+                                            haproxyconfig += ' ' + jval
+                                          haproxyconfig += '\n'
+                                  if ival not instanceof Array
+                                      switch (typeof ival)
+                                        when "string","number"
+                                            haproxyconfig += '    ' + keyy + ' ' + ival  if myarray is "yes"
+                                            haproxyconfig += ' ' + ival unless myarray is "yes"
+                                            myarray = "no"
+                                        when "object"
+                                          haproxyconfig += '    ' + keyy
+                                          for kkey,kval of ival
+                                              haproxyconfig += ' ' + kkey + ' ' + kval
+                                          haproxyconfig += '\n'
+                                haproxyconfig += '\n'
+                        haproxyconfig += '\n'
                     when "frontend"
                         for frontend in val
                             for keyy,value of frontend
                                 switch (typeof value)
                                     when "string","number"
-                                        haproxyconfig += 'frontend' + ' ' + value + '\n' if keyy is "name"
+                                        haproxyconfig += key + ' ' + value + '\n' if keyy is "name"
                                         haproxyconfig += '    ' + keyy + ' ' + value + '\n' unless keyy is "name"
                                     when "object"
                                         haproxyconfig += "\n" #not supported
                                 if value instanceof Array
                                   myarray = "yes"
                                   for ival in value
+                                    if ival not instanceof Array
+                                      switch (typeof ival)
+                                        when "string","number"
+                                            haproxyconfig += '    ' + keyy + ' ' + ival  if myarray is "yes"
+                                            haproxyconfig += ' ' + ival unless myarray is "yes"
+                                            myarray = "no"
+                                        when "object"
+                                          if keyy isnt "bind" 
+                                            if keyy isnt "use_backend"
+                                              haproxyconfig += '    ' + keyy
+                                              for kkey,kval of ival
+                                                haproxyconfig += ' ' + kkey + ' ' + kval
+                                              haproxyconfig += '\n'
+                                          else
+                                            haproxyconfig += '\n'
                                     if ival instanceof Array
-                                            haproxyconfig += "    " + keyy
-                                            for kval in ival
-                                                haproxyconfig += " " + kval
-                                            haproxyconfig += "\n"
+                                        haproxyconfig += "    " + keyy
+                                        for kval in ival
+                                            haproxyconfig += " " + kval
                                         haproxyconfig += "\n"
                                     if keyy is "bind"
                                         haproxyconfig += "    " + keyy 
@@ -86,25 +105,35 @@ class HAProxyService extends StormService
                                                 when "port"
                                                     haproxyconfig += ":" + jval
                                                 when "options"
-                                                    haproxyconfig += " " + jval + "\n"
+                                                    haproxyconfig += " " + jval
+                                        haproxyconfig += "\n"
                                     if keyy is "use_backend"
                                         for jkey, jval of ival
                                             for kval in jval
                                                 haproxyconfig += "    " + keyy + " " + jkey + " " +  kval + "\n"
-                                    if value instanceof Array
-                                      switch (typeof ival)
-                                        when "string","number"
-                                            haproxyconfig += '    ' + keyy if myarray is "yes"
-                                            haproxyconfig += ' ' + ival
-                                            myarray = "no"
+                                    if key is "listen"
+                                      if keyy is "server"
+                                        haproxyconfig += "    " + keyy
+                                        for jkey, jval of ival
+                                            switch (jkey)
+                                                when "servername"
+                                                    haproxyconfig += " " + jval
+                                                when "serverIP"
+                                                    haproxyconfig += " " + jval
+                                                when "port"
+                                                    haproxyconfig += ":" + jval
+                                                else
+                                                    haproxyconfig += " " + jkey + " " + jval
+                                        haproxyconfig += "\n"
                                   haproxyconfig += "\n"
-                        haproxyconfig += '\n\n'
-                    when "backend"
+                            haproxyconfig += "\n"
+                        haproxyconfig += '\n'
+                    when "backend","listen"
                         for backend in val
                             for keyy,value of backend
                                 switch (typeof value)
                                     when "string","number"
-                                        haproxyconfig += 'backend' + ' ' + value + '\n' if keyy is "name"
+                                        haproxyconfig += key  + ' ' + value + '\n' if keyy is "name"
                                         haproxyconfig += '    ' + keyy + ' ' + value + '\n' unless keyy is "name"
                                     when "object"
                                         haproxyconfig += "\n" #not supported
@@ -129,47 +158,34 @@ class HAProxyService extends StormService
                                                 else
                                                     haproxyconfig += " " + jkey + " " + jval
                                         haproxyconfig += "\n"
-                                    if value instanceof Array
-                                      switch (typeof ival)
-                                        when "string","number"
-                                            haproxyconfig += '    ' + keyy + ' ' + ival  if myarray is "yes"
-                                            haproxyconfig += ' ' + ival unless myarray is "yes"
-                                            myarray = "no"
-                                  haproxyconfig += "\n"
-                        haproxyconfig += "\n\n"
-                    when "defaults"
-                        haproxyconfig += 'defaults'+ "\n"
-                        for keyy,value of val
-                            switch (typeof value)
-                                when "string","number"
-                                    haproxyconfig += ' ' + keyy + ' ' + value + '\n'
-                                when "object"
-                                    haproxyconfig += "\n" #not supported
-                            if value instanceof Array
-                                if keyy is "log"
-                                    for val in value
-                                        haproxyconfig += ' ' + keyy + ' ' + val + '\n'
-                                if keyy is "stats"
-                                    haproxyconfig += ' ' + keyy
-                                    for ikey, ival in value
-                                        haproxyconfig += ' ' + ikey + ' ' + ival
-                                    haproxyconfig += "\n"
-                                if keyy is "use_backend"
-                                    for ival in value
-                                        for jkey, jval of ival
-                                            for kval in jval
-                                                haproxyconfig += " " + keyy + " " + jkey + " " +  kval + "\n"
-                                if keyy is "bind"
-                                    haproxyconfig += " " + keyy 
-                                    for ival in value
-                                        for jkey, jval of ival
+                                    if key is "listen"
+                                      if keyy is "bind"
+                                        haproxyconfig += "    " + keyy 
+                                        for jkey,jval of ival
                                             switch (jkey)
                                                 when "servername"
                                                     haproxyconfig += " " + jval
                                                 when "port"
                                                     haproxyconfig += ":" + jval
-                                                when "options"
-                                                    haproxyconfig += " " + jval + "\n"
+                                                else
+                                                    haproxyconfig += " " + jval
+                                        haproxyconfig += "\n"
+                                    if ival not instanceof Array
+                                      switch (typeof ival)
+                                        when "string","number"
+                                            haproxyconfig += '    ' + keyy + ' ' + ival  if myarray is "yes"
+                                            haproxyconfig += ' ' + ival unless myarray is "yes"
+                                            myarray = "no"
+                                        when "object"
+                                          if keyy isnt "bind" 
+                                            if keyy isnt "server"
+                                              haproxyconfig += '    ' + keyy
+                                              for kkey,kval of ival
+                                                haproxyconfig += ' ' + kkey + ' ' + kval
+                                              haproxyconfig += '\n'
+                                          else
+                                              haproxyconfig += '\n'
+                                  haproxyconfig += "\n"
                         haproxyconfig += "\n\n"
                     when "peers","mailers"
                         for peers in val
@@ -213,38 +229,11 @@ class HAProxyService extends StormService
                                                 haproxyconfig += " " + kval
                                             haproxyconfig += "\n"
                                     haproxyconfig += "\n"
-                    when "listen"
-                        for listen in val
-                            for keyy,value of listen
-                                switch (typeof value)
-                                    when "string","number"
-                                        haproxyconfig += 'listen' + ' ' + value + '\n' if keyy is "name"
-                                        haproxyconfig += ' ' + keyy + ' ' + value + '\n' unless keyy is "name"
-                                    when "object"
-                                        haproxyconfig += "\n" #not supported
-                                if value instanceof Array
-                                  if keyy is "bind"
-                                    haproxyconfig += " " + keyy 
-                                    for ival in value
-                                        for jkey, jval of ival
-                                            switch (jkey)
-                                                when "servername"
-                                                    haproxyconfig += " " + jval
-                                                when "port"
-                                                    haproxyconfig += ":" + jval
-                                                when "options"
-                                                    haproxyconfig += " " + jval + "\n"
-                                if keyy is "use_backend"
-                                    for ival in value
-                                        for jkey, jval of ival
-                                            for kval in jval
-                                                haproxyconfig += " " + keyy + " " + jkey + " " +  kval + "\n"
-                        haproxyconfig += "\n\n"
+                            haproxyconfig += "\n"
+                        haproxyconfig += "\n"
                     else
-                        haproxyconfig += ""
+                        haproxyconfig += "\n"
             callback haproxyconfig
-
-
 
     update: (newconfig, callback) ->
         @data = newconfig
