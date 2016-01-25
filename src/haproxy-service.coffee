@@ -242,8 +242,6 @@ class HAProxyService extends StormService
 
     destructor: ->
         @eliminate()
-        #@out.close()
-        #@err.close()
         @emit 'destroy'
 
 module.exports = HAProxyService

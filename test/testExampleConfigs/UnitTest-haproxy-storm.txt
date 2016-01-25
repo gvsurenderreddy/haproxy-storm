@@ -1,0 +1,106 @@
+                                                      HAPROXY-STORM Unit test results:
+                                                      ==============================
+
+
+GET on Packages:
+================
+To verify the haproxy-storm module added into Stormflash
+
+curl -X GET http://192.168.122.146:5000/packages
+
+Output must contain : 
+
+  {
+    "name": "haproxy-storm",
+    "version": "1.0.0",
+    "source": "npm://",
+    "type": "npm",
+    "status": {
+      "installed": true,
+      "imported": true
+    },
+    "id": "1da76db4-f6cf-472e-b285-f5db6277f35c"
+  }
+
+
+HAPROXY POST: 
+===========
+
+POST default configurations 
+
+Request:
+
+curl http://192.168.122.146:5000/haproxy -X POST -H "Content-Type: application/json" -d@http-mode.json
+
+Response:
+
+{
+  "id": "c0275c3e-fd9e-4bf9-a44c-fb120b811e0d",
+  "running": true
+}
+
+
+
+process running in VCG:
+
+unknown# ps | grep haproxy
+15657 200        0:31 /usr/sbin/haproxy -d -f /var/stormflash/plugins/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d.conf
+27406 root       0:00 grep haproxy
+unknown# 
+
+
+PUT Request:
+============
+
+curl http://192.168.122.146:5000/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d -X PUT -H "Content-Type: application/json" -d@http-mode.json
+
+Response:
+
+{
+  "updated": true
+}
+
+unknown# ps | grep haproxy
+30284 200        0:00 /usr/sbin/haproxy -d -f /var/stormflash/plugins/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d.conf
+30661 root       0:00 grep haproxy
+unknown# 
+
+
+GET Request:
+============
+curl -X GET http://192.168.122.146:5000/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d
+
+Response:
+Will list the complete configurations of the above instance-ID as defined in README.md
+
+
+DELETE request:
+===============
+This clears the respective instance configurations and stop the haproxy process
+
+curl http://192.168.122.146:5000/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d -X DELETE
+ 
+Response:
+204 No Content
+
+unknown# ps -w | grep haproxy
+23906 root      1152 S    grep haproxy
+unknown# 
+No haproxy process will be running with the above haproxy instance
+
+we can read the stats from url:
+------------------------------
+
+Get the details of the haproxy instance conectivity and packets received and send on bith sides
+
+192.168.122.146:8080/admin/stats
+
+
+Logs to veiw the of packets:
+----------------------------
+
+To see the haproxy server, client cofiguration logs, process and connectivity
+tail -f /var/log/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d.err
+
+To see the packet request respones of the haproxy instance
+tail -f /var/log/haproxy/c0275c3e-fd9e-4bf9-a44c-fb120b811e0d.out

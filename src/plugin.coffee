@@ -55,7 +55,8 @@ schema_haproxy = require('./schema').schema_haproxy
             @send 404
         else
             service.update @body, (result) =>
-                @send result
+                return @next err if err?
+                @send { updated: true }
 
     @get '/haproxy': ->
          @send registry.list()
