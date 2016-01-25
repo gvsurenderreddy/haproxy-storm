@@ -367,7 +367,7 @@ startcall = (context)->
         jsonfile.writeFileSync("/tmp/start-output.json",resp,{spaces: 2})
         context = {}
         context = utils.extend {},resp
-        console.log "Start done for instance: ", context.instance
+        console.log "HAProxy Start done for instance: ", context.instance
     .done
 
 stopcall = (context)->
@@ -381,7 +381,7 @@ stopcall = (context)->
         jsonfile.writeFileSync("/tmp/stop-output.json",resp,{spaces: 2})
         context = {}
         context = utils.extend {},resp
-        console.log "Stop done for instance: ", resp.instance
+        console.log "HAProxy Stop done"
     .done
 
 updatecall = (context)->
@@ -395,7 +395,7 @@ updatecall = (context)->
         jsonfile.writeFileSync("/tmp/update-output.json",resp,{spaces: 2})
         context = {}
         context = utils.extend {},resp
-        console.log "Update done for instance: ", resp.instance
+        console.log "HAProxy Update done for instance: ", resp.instance
     .done
 
 startcall(context);

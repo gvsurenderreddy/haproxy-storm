@@ -1,127 +1,117 @@
 validate = require('json-schema').validate
 assert = require 'assert'
 Promise = require 'bluebird'
+async = require 'async'
 needle = Promise.promisifyAll(require('needle'))
 utils = require('utils')._
-diff = require('deep-diff').diff
-
-schema_HAProxy = require('./schema')
+schema_haproxy = require('./schema').schema_haproxy
 
 getPromise = ->
     return new Promise (resolve, reject) ->
         resolve()
 
+Validate =  (config, schema_configs) ->
+    throw new Error "haproxy Validate - invalid input" unless config
+    checkschema = validate config, schema_configs
+    console.log 'haproxy schema validate result: ', checkschema
+    unless checkschema.valid
+        throw new Error "HAProxy schema check failed"+  checkschema.valid
+        return  false
+    else
+        return true
 
-removeItem = (list,id)->
-    console.log "remove item"
-    console.log list
-    console.log id
-    itr = 0
-    for item in list
-        if item? and (item is id)
-            index = itr
-            break
-        itr++
-    console.log "iterator is ",itr
-    console.log "index is", index
-    delete list[index]
-    list[index] = null
-
-
-PostServer = (baseUrl,config)->
-    needle.postAsync baseUrl + "/HAProxy", config, json:true
+PostHAProxy = (baseUrl,config)->
+    needle.postAsync baseUrl + "/haproxy", config, json:true
     .then (resp) =>
-        console.log "statuscode: ", resp[0].statusCode
+        #console.log "statuscode: ", resp[0].statusCode
         throw new Error 'invalidStatusCode' unless resp[0].statusCode is 200
-        return resp[1].id 
+        console.log "response code from post on haproxy - #{resp[0].statusCode}"
+        #console.log "response from post on haproxy - #{resp[1]}"
+        return resp[1].id
     .catch (err) =>
         throw err
 
-DeleteServer = (baseUrl,instanceid)->
-    needle.deleteAsync baseUrl + "/HAProxy/#{instanceid}", json:true
+DeleteHAProxy = (baseUrl,instanceid)->
+    needle.deleteAsync baseUrl + "/haproxy/#{instanceid}", json:true
     .then (resp) =>
         throw new Error 'invalidStatusCode' unless resp[0].statusCode is 204
-        return instanceid
+        return true
     .catch (err) =>
         throw err
 
-PutServer = (baseUrl,config,instanceid)->
-    needle.putAsync baseUrl + "/HAProxy/#{instanceid}", config, json:true
+PutHAProxy = (baseUrl,instanceid,config)->
+    needle.putAsync baseUrl + "/haproxy/#{instanceid}", config, json:true
     .then (resp) =>
         throw new Error 'invalidStatusCode' unless resp[0].statusCode is 200
-        #server.history.config = utils.extend {},server.config
-        return config
+        return true
     .catch (err) =>
         throw err
 
-
 Start =  (context) ->
-    throw new Error 'HAProxy-storm.Start missingParams' unless context.bInstalledPackages and context.service.name
+    throw new Error 'haproxy-storm.Start missingParams' unless context.bInstalledPackages and context.service.name and context.service.factoryConfig?
 
-    if context.instances? and context.instances?.length > 0
+    if context.instance? and context.instance?.length > 0
         return context
-    context.instances ?= []
+
     configObj = context.service.factoryConfig?.config
-    config = configObj[context.service.name]    
+    config = configObj[context.service.name]
+#    config = context.service.factoryConfig?.config
+
+    throw new Error 'haproxy-storm.Start missingParams' unless config?
+
+    context.instance ?= []
 
     getPromise()
-    .then (resp) =>        
-        return PostServer(context.baseUrl,config)    
+    .then () =>
+        return Validate(config,schema_haproxy)
     .then (resp) =>
-        console.log resp
-        context.instances.push resp
+        return PostHAProxy(context.baseUrl,config)
+    .then (resp) =>
+        context.instance.push resp
+        console.log "Start haproxy for instance: ", context.instance
+        context.bFactoryPush = true
         return context
     .catch (err) =>
         throw err
 
 
 Stop =  (context) ->
-    #throw new Error 'HAProxy-storm.Stop missingParams' unless context.bInstalledPackages and context.service.name
-    #configObj = context.service.factoryConfig?.config
-    #config = configObj[context.service.name]    
-    throw new Error 'HAProxy-storm.Stop missingParams' unless context.instances and context.instances?.length > 0
-    instances = context.instances 
+    throw new Error 'haproxy-storm.Stop missingParams' unless context.bInstalledPackages and context.service.name
+    throw new Error 'haproxy-strom.Stop Instance is empty' if utils.isEmpty(context.instance)
+    instance = context.instance
     getPromise()
-    .then (resp) =>     
-        return DeleteServer(context.baseUrl,instances[0])    
     .then (resp) =>
-        #console.log resp
-        removeItem instances,resp
+         #console.log "Stop for instance:  ",instance
+         return  DeleteHAProxy(context.baseUrl,instance)
+    .then (resp) =>
+        console.log "Stop haproxy Instance: ",instance
+        delete context.instance
+        context.instance = null
+        context.bFactoryPush = false
         return context
     .catch (err) =>
         throw err
 
 Update =  (context) ->
-    throw new Error 'HAProxy-storm.Stop missingParams' unless context.bInstalledPackages and context.service.name and context.policyConfig
-    configObj = context.policyConfig
-    config = configObj[context.service.name]           
-    throw new Error 'config is missing' if utils.isEmpty(config)
-    throw new Error 'Instance not found' unless context.instances? or not utils.isEmpty(context.instances) or context.instances[0] isnt null
-    instance = context.instances[0]
-    
+    throw new Error 'haproxy-storm.Update missingParams' unless context.bInstalledPackages and context.service.name and context.policyConfig
+    throw new Error 'haproxy-strom.Update Instance is empty' if utils.isEmpty(context.instance)
+    instance = context.instance
+    policyconfig = context.policyConfig[context.service.name]
+#    policyconfig = context.service.policyConfig?.config
+    #console.log "PUT Update haproxy for instance: ", context.instance
     getPromise()
-    .then (resp) =>       
-        return PutServer(context.baseUrl,config,instance)    
+    .then () =>
+        return Validate(policyconfig,schema_haproxy)
     .then (resp) =>
-        #console.log resp
+        console.log "Update haproxy for instance : ", instance
+        return PutHAProxy(context.baseUrl,instance,policyconfig)
+    .then (resp) =>
+        #console.log "Update for instance #{context.instance}: is ", resp
         return context
     .catch (err) =>
         throw err
 
-
-#input to the validate is  { config:{}}
-Validate =  (config) ->
-    throw new Error "HAProxy-storm.Validate - invalid input" unless config?
-    if config? and not utils.isEmpty(config)
-        chk = validate config, schema_HAProxy
-        console.log 'HAProxy validate result ', chk
-        unless chk.valid
-            throw new Error "HAProxy schema check failed"+  chk.valid
-            return  false
-        else
-            return true
-
 module.exports.start = Start
 module.exports.stop = Stop
 module.exports.update = Update
-#module.exports.validate = Validate
+module.exports.validate = Validate
