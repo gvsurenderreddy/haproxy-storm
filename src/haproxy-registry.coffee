@@ -1,7 +1,7 @@
 StormRegistry = require 'stormregistry'
 StormData = require 'stormdata'
 
-HAProxyService = require './HAProxy-service'
+HAProxyService = require './haproxy-service'
 
 class HAProxyRegistry extends StormRegistry
     constructor: (filename) ->
@@ -32,17 +32,15 @@ class HAProxyRegistry extends StormRegistry
         super service.id, service
         delete service.data.instance
 
-    get: (key) ->
-        entry = super key
-        return unless entry?
-
-        if entry.data? and entry.data instanceof HAProxyService
-            entry.data.id = entry.id
-            entry.data
-        else
-            entry
-
-
+    list : () ->
+        results = []
+        result = {}
+        services = super
+        for service in services
+            result = service.data
+            result.id = service.id
+            results.push result
+        results
 
 module.exports  = HAProxyRegistry
 
