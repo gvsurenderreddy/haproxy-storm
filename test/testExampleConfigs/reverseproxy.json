@@ -1,0 +1,106 @@
+ {
+ 	"global": {
+
+ 		"log": [
+ 			["localhost local0"],
+ 			["localhost local1 notice"]
+ 		],
+ 		"uid": "200",
+ 		"gid": "200",
+ 		"maxconn": "10000",
+ 		"daemon": "",
+ 		"stats": [{
+ 			"socket": "/var/run/haproxy.stat",
+ 			"mode": "600",
+ 			"level": "admin"
+ 		}]
+ 	},
+ 	"frontend": [{
+ 		"name": "public",
+ 		"bind": [{
+ 			"servername": "192.168.122.146",
+ 			"port": "8080",
+ 			"options": "name clear"
+ 		}],
+ 		"mode": "http",
+ 		"log": "global",
+ 		"option httplog": "",
+ 		"option dontlognull": "",
+                "option  http-server-close":"",
+                "option  http-pretend-keepalive":"",
+                "option  forwardfor":"",
+                "option  originalto":"",
+ 		"monitor-uri": "/monitoruri",
+                "default-server":"inter 3s fall 3 rise 2",
+ 		"maxconn": "8000",
+ 		"timeout client": "30s",
+ 		"stats uri": "/admin/stats",
+ 		"use_backend": [{
+ 			"calsoftpool": ["if { path_beg /calsoftpool   }"
+ 			]
+ 		}],
+ 		"default_backend": "clearpathpool"
+
+ 	}],
+ 	"backend": [{
+ 		"name": "clearpathpool",
+ 		"mode": "http",
+ 		"balance": "roundrobin",
+ 		"timeout connect": "5s",
+ 		"timeout server ": "30s",
+ 		"timeout queue ": "30s",
+ 		"option httpchk": "HEAD /index.html",
+ 		"fullconn": "4000",
+                "reqrep":"^([^\\ :]*)\\ /clearpathpool/(.*)  \\1\\ /\\2",
+                "reqadd":"X-Script-Name:\\ /clearpathpool",
+                "option forwardfor":"",
+ 		"server": [{
+ 			"servername": "clearpathserv1",
+ 			"serverIP": "192.168.122.1",
+ 			"port": "8081",
+ 			"minconn": "50",
+ 			"maxconn": "500",
+ 			"cookie": "clearpathserv1",
+ 			"check ": "",
+ 			"inter": "1000"
+ 		}, {
+ 			"servername": "clearpathserv2",
+ 			"serverIP": "192.168.122.1",
+ 			"port": "8082",
+ 			"minconn": "50",
+ 			"maxconn": "500",
+ 			"cookie": "clearpathserv2",
+ 			"check ": "",
+ 			"inter": "1000"
+ 		}]
+ 	}, {
+ 		"name": "calsoftpool",
+ 		"mode": "http",
+ 		"balance": "roundrobin",
+ 		"timeout connect": "5s",
+ 		"timeout server ": "30s",
+ 		"timeout queue ": "30s",
+ 		"option httpchk": "HEAD /index.html",
+                "reqrep":" ^([^\\ :]*)\\ /calsoftpool/(.*)  \\1\\ /\\2",
+ 		"fullconn": "4000",
+ 		"server": [{
+ 			"servername": "clearpathserv9",
+ 			"serverIP": "10.2.56.108",
+ 			"port": "8081",
+ 			"minconn": "50",
+ 			"maxconn": "500",
+ 			"cookie": "clearpathserv9",
+ 			"check ": "",
+ 			"inter": "1000"
+ 		}, {
+ 			"servername": "clearpathserv10",
+ 			"serverIP": "10.2.56.108",
+ 			"port": "8082",
+ 			"minconn": "50",
+ 			"maxconn": "500",
+ 			"cookie": "clearpathserv10",
+ 			"check ": "",
+ 			"inter": "1000"
+ 		}]
+ 	}]
+ }

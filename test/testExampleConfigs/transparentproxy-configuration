@@ -1,0 +1,54 @@
+Transparent Proxy set-up:
+=========================
+
+HAProxy can’t do transparent binding or proxying alone. below is the list to be exist device:
+  1. appropriate HAProxy compilation option
+  2. appropriate Linux Kernel compilation option
+  3. sysctl settings
+  4. iptables rules
+  5. ip route rules
+  6. HAProxy configuration
+
+HAProxy compilation requirements
+
+Linux Kernel requirements:
+
+You have to ensure your kernel has been compiled with the following options:
+  – CONFIG_NETFILTER_TPROXY
+  – CONFIG_NETFILTER_XT_TARGET_TPROXY
+
+sysctl settings:
+
+The following sysctls must be enabled:
+  – net.ipv4.ip_forward
+  – net.ipv4.ip_nonlocal_bind
+
+iptables rules:
+
+You must setup the following iptables rules:
+
+iptables -t mangle -N DIVERT
+iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
+iptables -t mangle -A DIVERT -j MARK --set-mark 1
+iptables -t mangle -A DIVERT -j ACCEPT
+
+Purpose is to mark packets which matches a socket bound locally (by HAProxy).
+
+IP route rules
+
+Operating System to forward packets marked by iptables to the loopback where HAProxy can catch them:
+
+ip rule add fwmark 1 lookup 100
+ip route add local 0.0.0.0/0 dev lo table 100
+
+HAProxy configuration:
+[...]
+frontend cpn_application
+  bind 1.1.1.1:80 transparent
+[...]
+
+
+backend bk_application
+  source 0.0.0.0 usesrc clientip
+[...]
+

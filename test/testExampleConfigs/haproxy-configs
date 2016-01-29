@@ -1,0 +1,201 @@
+                                      Example HAProxy Configuration:
+                                      ==============================
+All the haproxy configurations created in json format should follow for global, default, frontend, backend and listen
+1: key:value pair
+2: key:[] array
+3: key:[[],[]] array of array
+4: key:[{},{}] array of obeject
+
+
+Haproxy Sample configuration:
+-----------------------------
+
+GZIP compression configs:
+-------------------------
+
+frontend clearpathpool
+    bind 10.2.56.108:80
+    compression algo gzip
+    compression type text/html text/plain text/javascript application/javascript application/xml text/css
+    default_backend clearpathPool
+
+DDOS configuration:
+-------------------
+
+frontend cpn_public
+  bind 0.0.0.0:8080
+  stick-table type ip size 100k expire 30s store conn_cur
+  # Allow clean known IPs to bypass the filter
+  tcp-request connection accept if { src -f /etc/haproxy/whitelist.lst }
+  # Shut the new connection as long as the client has already 10 opened 
+  tcp-request connection reject if { src_conn_cur ge 10 }
+  tcp-request connection track-sc1 src
+  use_backend static if { path_end .jpg .png .gif .css .js }
+  default_backend clearpathpool
+
+
+Stick tables and cookie:
+-------------
+
+  stick-table type ip size 100k expire 30s store conn_cur
+  stick on src
+  
+  cookie MYSRV insert indirect nocache
+
+SSL server side SNI:
+--------------------
+
+backend cpn_ssl
+ mode http
+ server s1 10.0.0.3:4444 check ssl sni req.hdr(Host)
+
+
+frontend ft_test
+  mode http
+  bind 0.0.0.0:8443 ssl crt ./haproxy.pem crt ./certs/prefer-server-ciphers
+  # other (self described) options are: [ciphers &lt;suite&gt;] [nosslv3] [notlsv1]
+  use_backend cpn_cert1 if { ssl_fc_sni cert1 } # content switching based on SNI
+  use_backend cpn_cert2 if { ssl_fc_sni cert2 } # content switching based on SNI
+  default_backend clearpathpool
+
+Multiple TCP connections :
+--------------------------
+
+listen calsoftPool 
+        bind 10.2.56.126:8080
+        mode tcp
+        option tcplog
+        balance leastconn
+        server calsoftPool1 10.2.56.115:31000 check
+        server calsoftPool2 10.2.56.116:31100 check
+
+listen clearpathPool
+        bind 10.2.56.125:9090
+        mode tcp
+        option tcplog
+        balance leastconn
+        server clearpathPool1 10.2.56.111:8081 check
+        server clearpathPool2 10.2.56.110:8082 check
+
+
+Simple Health Check:
+--------------------
+
+backend clearpathpool
+
+ option tcp-check
+ tcp-check send GET /my/check/url HTTP/1.1rn
+ tcp-check send Host: myhostrn
+ tcp-check send Connection: closern
+ tcp-check send rn
+ tcp-check expect string HTTP/1.1 200 OK
+ tcp-check expect ! string Error
+
+External Health check:
+
+global
+ external-check
+ 
+backend b_myapp
+ external-check path "/usr/bin:/bin"
+ external-check command /bin/true
+ server s1 10.0.0.3:4444 check
+
+
+
+
+Conetnt switching:
+
+frontend public
+ <frontend settings>
+ acl static_domain  req.hdr_beg(Host) -i static. images.
+ acl static_content path_end          -i .jpg .png .gif .css .js
+ use_backend cpn_static if static_domain or static_content
+ default_backend cpn_dynamic
+    
+backend cpn_static
+ <parameters related to static content delivery>
+
+hashing the URL path only:
+--------------------------
+
+
+backend bk_static
+  balance uri
+  hash-type consistent
+
+
+hashing the whole url, including the query string:
+--------------------------------------------------
+
+backend bk_static
+  balance uri whole
+  hash-type consistent
+
+Query string parameter hash:
+
+backend bk_static
+  balance url_param id
+  hash-type consistent
+
+hash on a HTTP header:
+
+backend bk_static
+  balance hdr(Host)
+  hash-type consistent
+
+Parameter Hash:
+
+backend bk_static
+  balance url_param id
+  hash-type consistent
+
+Header Hash:
+
+backend bk_static
+  balance hdr(Host)
+  hash-type consistent
+
+
+Reverse Proxy Configs:
+----------------------
+
+
+frontend public
+        bind *:80
+        use_backend clearpathPool if { path_beg /clearpathPool/ }
+        default_backend calsoftPool
+
+backend calsoftPool
+  reqrep ^([^\ :]*)\ /calsoftPool/(.*)  \1\ /\2
+  reqadd X-Script-Name:\ /calsoftPool
+  option forwardfor
+  server alsoftPoolServ1 127.0.0.1:5000
+
+backend clearpathPool
+        reqrep ^([^\ :]*)\ /clearpathPool/(.*)     \1\ /\2
+        server clearpathPoolserv1  127.0.0.1:8080
+
+
+
+SSL configs:
+For Client Certificate mandatory
+bind 192.168.10.1:443 ssl crt ./server.pem ca-file ./ca.crt verify required
+
+For Client Certificate optional
+bind 192.168.10.1:443 ssl crt ./server.pem ca-file ./ca.crt verify optional
+
+Client Certificate optional and managing expired certificates:
+
+bind 192.168.10.1:443 ssl crt ./server.pem ca-file ./ca.crt verify optional crt-ignore-err 10
+ use_backend static if { ssl_c_verify 10 } 
+ use_backend sharepoint if { ssl_fc_has_crt } 
+ default_backend webmail
+
+backend static
+ mode http
+ option http-server-close
+ redirect location /certexpired.html if { ssl_c_verify 10 } ! { path /certexpired.html }
+ server srv5 192.168.10.105:80 check
+ server srv6 192.168.10.106:80 check
+
